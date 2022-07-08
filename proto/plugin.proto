@@ -6,7 +6,7 @@ Last Date Changed: 2022/07/07
 
 syntax = "proto3";
 
-package laniakea_sdk;
+package proto;
 
 option go_package = "github.com/SSSOC-CAN/laniakea-plugin-sdk/proto";
 
