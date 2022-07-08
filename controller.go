@@ -22,7 +22,6 @@ type ControllerGRPCServer struct {
 }
 
 // Stop implements the Controller interface method Stop
-// TODO:SSSOCPaulCote - add timeout context
 func (c *ControllerGRPCClient) Stop() error {
 	_, err := c.client.Stop(context.Background(), &proto.Empty{})
 	if err != nil {
@@ -32,7 +31,6 @@ func (c *ControllerGRPCClient) Stop() error {
 }
 
 // Command implements the Controller interface method Command
-// TODO:SSSOCPaulCote - add timeout context
 func (c *ControllerGRPCClient) Command(f *proto.Frame) (chan *proto.Frame, error) {
 	stream, err := c.client.Command(context.Background(), f)
 	if err != nil {

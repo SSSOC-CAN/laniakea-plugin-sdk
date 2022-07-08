@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -35,11 +36,15 @@ func (e *DatasourceExample) StartRecord() (chan *proto.Frame, error) {
 				return
 			default:
 				rnd := make([]byte, 8)
+				_, err := rand.Read(rnd)
+				if err != nil {
+					log.Println(err)
+				}
 				frameChan <- &proto.Frame{
 					Source:    pluginName,
 					Type:      "application/json",
 					Timestamp: time.Now().UnixMilli(),
-					Payload:   rand.Read(rnd),
+					Payload:   rnd,
 				}
 				time.Sleep(1 * time.Second)
 			}

@@ -28,7 +28,6 @@ type DatasourceGRPCServer struct {
 }
 
 // StartRecord implements the Datasource interface method StartRecord
-// TODO:SSSOCPaulCote - timeout context
 func (c *DatasourceGRPCClient) StartRecord() (chan *proto.Frame, error) {
 	stream, err := c.client.StartRecord(context.Background(), &proto.Empty{})
 	if err != nil {
@@ -52,7 +51,6 @@ func (c *DatasourceGRPCClient) StartRecord() (chan *proto.Frame, error) {
 }
 
 // StopRecord implements the Datasource interface method StopRecord
-// TODO:SSSOCPaulCote - timeout context
 func (c *DatasourceGRPCClient) StopRecord() error {
 	_, err := c.client.StopRecord(context.Background(), &proto.Empty{})
 	if err != nil {
