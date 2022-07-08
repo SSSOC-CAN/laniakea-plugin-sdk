@@ -115,7 +115,7 @@ func (s *ControllerGRPCServer) GetVersion(ctx context.Context, _ *proto.Empty) (
 // It implements the PushVersion and GetVersion functions for convenience
 type ControllerBase struct {
 	version               string
-	laniVersionConstraint version.Constraint
+	laniVersionConstraint version.Constraints
 	laniVersion           string
 }
 
@@ -125,12 +125,13 @@ func (b *ControllerBase) SetPluginVersion(verStr string) {
 }
 
 // SetVersionConstraints sets the version constraints on Laniakea
-func (b *ControllerBase) SetRequiredVersion(verStr string) {
+func (b *ControllerBase) SetRequiredVersion(verStr string) error {
 	constraints, err := version.NewConstraint(verStr)
 	if err != nil {
 		return err
 	}
 	b.laniVersionConstraint = constraints
+	return nil
 }
 
 // GetLaniVersion returns the version of laniakea

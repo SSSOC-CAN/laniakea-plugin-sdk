@@ -136,7 +136,7 @@ func (s *DatasourceGRPCServer) GetVersion(ctx context.Context, _ *proto.Empty) (
 // It implements the PushVersion and GetVersion functions for convenience
 type DatasourceBase struct {
 	version               string
-	laniVersionConstraint version.Constraint
+	laniVersionConstraint version.Constraints
 	laniVersion           string
 }
 
@@ -152,6 +152,7 @@ func (b *DatasourceBase) SetVersionConstraints(verStr string) error {
 		return err
 	}
 	b.laniVersionConstraint = constraints
+	return nil
 }
 
 // GetLaniVersion returns the version of laniakea
