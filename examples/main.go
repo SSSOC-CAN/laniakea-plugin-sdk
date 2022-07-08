@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	pluginName      = "test_datasource"
-	pluginVersion   = "0.1.0"
-	requiredVersion = "0.2.0"
+	pluginName            = "test_datasource"
+	pluginVersion         = "0.1.0"
+	laniVersionConstraint = ">= 0.2.0"
 )
 
 type DatasourceExample struct {
@@ -68,8 +68,8 @@ func (e *DatasourceExample) Stop() error {
 
 func main() {
 	impl := &DatasourceExample{}
-	impl.SetPluginVersion(pluginVersion)     // set the plugin version before serving
-	impl.SetRequiredVersion(requiredVersion) // set required laniakea version before serving
+	impl.SetPluginVersion(pluginVersion)              // set the plugin version before serving
+	impl.SetVersionConstraints(laniVersionConstraint) // set required laniakea version before serving
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: sdk.HandshakeConfig,
 		Plugins: map[string]plugin.Plugin{

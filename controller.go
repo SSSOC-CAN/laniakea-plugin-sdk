@@ -12,6 +12,7 @@ import (
 	"io"
 
 	"github.com/SSSOC-CAN/laniakea-plugin-sdk/proto"
+	"github.com/hashicorp/go-version"
 )
 
 type ControllerGRPCClient struct{ client proto.ControllerClient }
@@ -113,9 +114,9 @@ func (s *ControllerGRPCServer) GetVersion(ctx context.Context, _ *proto.Empty) (
 // ControllerBase is a rough implementation of the Controller interface
 // It implements the PushVersion and GetVersion functions for convenience
 type ControllerBase struct {
-	version             string
-	requiredLaniVersion string
-	laniVersion         string
+	version               string
+	laniVersionConstraint version.Constraint
+	laniVersion           string
 }
 
 // SetPluginVersion sets the plugin version string
@@ -123,9 +124,13 @@ func (b *ControllerBase) SetPluginVersion(verStr string) {
 	b.version = verStr
 }
 
-// SetRequiredVersion sets the required laniakea version
+// SetVersionConstraints sets the version constraints on Laniakea
 func (b *ControllerBase) SetRequiredVersion(verStr string) {
-	b.requiredLaniVersion = verStr
+	constraints, err := version.NewConstraint(verStr)
+	if err != nil {
+		return err
+	}
+	b.laniVersionConstraint = constraints
 }
 
 // GetLaniVersion returns the version of laniakea
@@ -143,7 +148,11 @@ func (b *ControllerBase) GetVersion() (string, error) {
 
 // PushVersion sets the required laniakea version
 func (b *ControllerBase) PushVersion(verStr string) error {
-	if verStr != b.requiredLaniVersion {
+	laniV, err := version.NewVersion(verStr)
+	if err != nil {
+		return err
+	}
+	if !b.laniVersionConstraint.Check(laniV) {
 		return ErrLaniakeaVersionMismatch
 	}
 	b.laniVersion = verStr

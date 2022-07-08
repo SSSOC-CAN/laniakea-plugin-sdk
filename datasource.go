@@ -13,6 +13,7 @@ import (
 
 	"github.com/SSSOC-CAN/laniakea-plugin-sdk/proto"
 	bg "github.com/SSSOCPaulCote/blunderguard"
+	"github.com/hashicorp/go-version"
 )
 
 const (
@@ -134,9 +135,9 @@ func (s *DatasourceGRPCServer) GetVersion(ctx context.Context, _ *proto.Empty) (
 // DatasourceBase is a rough implementation of the Datasource interface
 // It implements the PushVersion and GetVersion functions for convenience
 type DatasourceBase struct {
-	version             string
-	requiredLaniVersion string
-	laniVersion         string
+	version               string
+	laniVersionConstraint version.Constraint
+	laniVersion           string
 }
 
 // SetPluginVersion sets the plugin version string
@@ -144,9 +145,13 @@ func (b *DatasourceBase) SetPluginVersion(verStr string) {
 	b.version = verStr
 }
 
-// SetRequiredVersion sets the required laniakea version
-func (b *DatasourceBase) SetRequiredVersion(verStr string) {
-	b.requiredLaniVersion = verStr
+// SetVersionConstraints sets the version constraints on Laniakea
+func (b *DatasourceBase) SetVersionConstraints(verStr string) error {
+	constraints, err := version.NewConstraint(verStr)
+	if err != nil {
+		return err
+	}
+	b.laniVersionConstraint = constraints
 }
 
 // GetLaniVersion returns the version of laniakea
@@ -164,7 +169,11 @@ func (b *DatasourceBase) GetVersion() (string, error) {
 
 // PushVersion sets the laniakea version atrribute
 func (b *DatasourceBase) PushVersion(verStr string) error {
-	if verStr != b.requiredLaniVersion {
+	laniV, err := version.NewVersion(verStr)
+	if err != nil {
+		return err
+	}
+	if !b.laniVersionConstraint.Check(laniV) {
 		return ErrLaniakeaVersionMismatch
 	}
 	b.laniVersion = verStr
