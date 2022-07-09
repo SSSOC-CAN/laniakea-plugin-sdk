@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	pluginName            = "test_datasource"
+	pluginName            = "test-rng-plugin"
 	pluginVersion         = "0.1.0"
 	laniVersionConstraint = ">= 0.2.0"
 )
@@ -23,12 +23,16 @@ type DatasourceExample struct {
 	sync.WaitGroup
 }
 
+// Compile time check to ensure DatasourceExample satisfies the Datasource interface
+var _ sdk.Datasource = (*DatasourceExample)(nil)
+
 // Implements the Datasource interface funciton StartRecord
 func (e *DatasourceExample) StartRecord() (chan *proto.Frame, error) {
 	frameChan := make(chan *proto.Frame)
 	e.Add(1)
 	go func() {
 		defer e.Done()
+		defer close(frameChan)
 		time.Sleep(1 * time.Second) // sleep for a second while laniakea sets up the plugin
 		for {
 			select {
@@ -67,7 +71,7 @@ func (e *DatasourceExample) Stop() error {
 }
 
 func main() {
-	impl := &DatasourceExample{}
+	impl := &DatasourceExample{quitChan: make(chan struct{})}
 	impl.SetPluginVersion(pluginVersion)              // set the plugin version before serving
 	impl.SetVersionConstraints(laniVersionConstraint) // set required laniakea version before serving
 	plugin.Serve(&plugin.ServeConfig{

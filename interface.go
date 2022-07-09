@@ -49,24 +49,24 @@ type ControllerPlugin struct {
 	Impl Controller
 }
 
-// GRPCServer implements the ** interface in the go-plugin package
+// GRPCServer implements the plugin.Plugin interface in the go-plugin package
 func (p *DatasourcePlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
 	proto.RegisterDatasourceServer(s, &DatasourceGRPCServer{Impl: p.Impl})
 	return nil
 }
 
-// GRPCClient implements the ** interface in the go-plugin package
+// GRPCClient implements the plugin.Plugin interface in the go-plugin package
 func (p *DatasourcePlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
 	return &DatasourceGRPCClient{client: proto.NewDatasourceClient(c)}, nil
 }
 
-// GRPCServer implements the ** interface in the go-plugin package
+// GRPCServer implements the plugin.Plugin interface in the go-plugin package
 func (p *ControllerPlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
 	proto.RegisterControllerServer(s, &ControllerGRPCServer{Impl: p.Impl})
 	return nil
 }
 
-// GRPCClient implements the ** interface in the go-plugin package
+// GRPCClient implements the plugin.Plugin interface in the go-plugin package
 func (p *ControllerPlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
 	return &ControllerGRPCClient{client: proto.NewControllerClient(c)}, nil
 }

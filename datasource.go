@@ -34,7 +34,14 @@ func (c *DatasourceGRPCClient) StartRecord() (chan *proto.Frame, error) {
 	if err != nil {
 		return nil, err
 	}
+	// sometimes the first stream receive is an error
 	frameChan := make(chan *proto.Frame)
+	frame, err := stream.Recv()
+	if frame == nil || err == io.EOF {
+		return nil, err
+	} else if err != nil {
+		return nil, err
+	}
 	go func() {
 		defer close(frameChan)
 		for {
@@ -169,14 +176,14 @@ func (b *DatasourceBase) GetVersion() (string, error) {
 }
 
 // PushVersion sets the laniakea version atrribute
-func (b *DatasourceBase) PushVersion(verStr string) error {
-	laniV, err := version.NewVersion(verStr)
+func (b *DatasourceBase) PushVersion(versionNumber string) error {
+	laniV, err := version.NewVersion(versionNumber)
 	if err != nil {
 		return err
 	}
 	if !b.laniVersionConstraint.Check(laniV) {
 		return ErrLaniakeaVersionMismatch
 	}
-	b.laniVersion = verStr
+	b.laniVersion = versionNumber
 	return nil
 }
