@@ -132,7 +132,7 @@ func (b *ControllerBase) SetPluginVersion(verStr string) {
 }
 
 // SetVersionConstraints sets the version constraints on Laniakea
-func (b *ControllerBase) SetRequiredVersion(verStr string) error {
+func (b *ControllerBase) SetVersionConstraints(verStr string) error {
 	constraints, err := version.NewConstraint(verStr)
 	if err != nil {
 		return err
