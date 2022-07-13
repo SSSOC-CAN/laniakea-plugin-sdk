@@ -103,6 +103,9 @@ func (s *DatasourceGRPCServer) StartRecord(_ *proto.Empty, stream proto.Datasour
 	for {
 		select {
 		case frame := <-frameChan:
+			if frame == nil {
+				return nil
+			}
 			if err := stream.Send(frame); err != nil {
 				return err
 			}

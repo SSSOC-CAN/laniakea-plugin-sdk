@@ -94,6 +94,9 @@ func (s *ControllerGRPCServer) Command(req *proto.Frame, stream proto.Controller
 	for {
 		select {
 		case frame := <-frameChan:
+			if frame == nil {
+				return nil
+			}
 			if err := stream.Send(frame); err != nil {
 				return err
 			}
