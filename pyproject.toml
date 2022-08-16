@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "laniakea_plugin_sdk"
+version = "1.0.6"
+authors = [
+  { name="Paul Côté", email="paul.cote@sssoc.ca" },
+]
+description = "The python plugin SDK for Laniakea"
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/SSSOC-CAN/laniakea-plugin-sdk"
+"Bug Tracker" = "https://github.com/SSSOC-CAN/laniakea-plugin-sdk/issues"

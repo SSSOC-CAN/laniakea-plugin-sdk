@@ -17,3 +17,10 @@
 # Python dependencies
 venv/
 __pycache__/
+
+# Python package info
+build/
+dist/
+
+#grpc dependencies
+googleapis/
