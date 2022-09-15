@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import proto.plugin_pb2 as plugin__pb2
+import plugin_pb2 as plugin__pb2
 
 
 class DatasourceStub(object):

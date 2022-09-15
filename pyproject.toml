@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "laniakea_plugin_sdk"
-version = "1.0.6"
+version = "1.0.8"
 authors = [
   { name="Paul Côté", email="paul.cote@sssoc.ca" },
 ]

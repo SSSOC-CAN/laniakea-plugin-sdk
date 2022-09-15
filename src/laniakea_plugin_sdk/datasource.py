@@ -20,6 +20,7 @@ defaultPort = 1234
 class DatasourceBase(plugin_pb2_grpc.DatasourceServicer):
     """Base Implementation of Datasource Plugin"""
     def __init__(self, version, laniVersionConstraint):
+        super(DatasourceBase, self).__init__()
         self.setPluginVersion(version)
         self.setVersionConstraints(laniVersionConstraint)
 
@@ -36,7 +37,7 @@ class DatasourceBase(plugin_pb2_grpc.DatasourceServicer):
     def GetVersion(self, request, context):
         if not self.version:
             raise ValueError("plugin version not set")
-        return self.version
+        return plugin_pb2.VersionNumber(version=self.version)
 
     def PushVersion(self, request, context):
         laniV = version.parse(request.version)

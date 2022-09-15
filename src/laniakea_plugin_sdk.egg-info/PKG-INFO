@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: laniakea-plugin-sdk
-Version: 1.0.6
+Version: 1.0.8
 Summary: The python plugin SDK for Laniakea
 Author-email: Paul Côté <paul.cote@sssoc.ca>
 License: MIT License
