@@ -34,7 +34,7 @@ func NewDatasourceClient(cc grpc.ClientConnInterface) DatasourceClient {
 }
 
 func (c *datasourceClient) StartRecord(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Datasource_StartRecordClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Datasource_ServiceDesc.Streams[0], "/laniakea_sdk.Datasource/StartRecord", opts...)
+	stream, err := c.cc.NewStream(ctx, &Datasource_ServiceDesc.Streams[0], "/proto.Datasource/StartRecord", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (x *datasourceStartRecordClient) Recv() (*Frame, error) {
 
 func (c *datasourceClient) StopRecord(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/laniakea_sdk.Datasource/StopRecord", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Datasource/StopRecord", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (c *datasourceClient) StopRecord(ctx context.Context, in *Empty, opts ...gr
 
 func (c *datasourceClient) Stop(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/laniakea_sdk.Datasource/Stop", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Datasource/Stop", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (c *datasourceClient) Stop(ctx context.Context, in *Empty, opts ...grpc.Cal
 
 func (c *datasourceClient) PushVersion(ctx context.Context, in *VersionNumber, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/laniakea_sdk.Datasource/PushVersion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Datasource/PushVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (c *datasourceClient) PushVersion(ctx context.Context, in *VersionNumber, o
 
 func (c *datasourceClient) GetVersion(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*VersionNumber, error) {
 	out := new(VersionNumber)
-	err := c.cc.Invoke(ctx, "/laniakea_sdk.Datasource/GetVersion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Datasource/GetVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func _Datasource_StopRecord_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/laniakea_sdk.Datasource/StopRecord",
+		FullMethod: "/proto.Datasource/StopRecord",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DatasourceServer).StopRecord(ctx, req.(*Empty))
@@ -194,7 +194,7 @@ func _Datasource_Stop_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/laniakea_sdk.Datasource/Stop",
+		FullMethod: "/proto.Datasource/Stop",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DatasourceServer).Stop(ctx, req.(*Empty))
@@ -212,7 +212,7 @@ func _Datasource_PushVersion_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/laniakea_sdk.Datasource/PushVersion",
+		FullMethod: "/proto.Datasource/PushVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DatasourceServer).PushVersion(ctx, req.(*VersionNumber))
@@ -230,7 +230,7 @@ func _Datasource_GetVersion_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/laniakea_sdk.Datasource/GetVersion",
+		FullMethod: "/proto.Datasource/GetVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DatasourceServer).GetVersion(ctx, req.(*Empty))
@@ -242,7 +242,7 @@ func _Datasource_GetVersion_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Datasource_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "laniakea_sdk.Datasource",
+	ServiceName: "proto.Datasource",
 	HandlerType: (*DatasourceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -292,7 +292,7 @@ func NewControllerClient(cc grpc.ClientConnInterface) ControllerClient {
 
 func (c *controllerClient) Stop(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/laniakea_sdk.Controller/Stop", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Controller/Stop", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +300,7 @@ func (c *controllerClient) Stop(ctx context.Context, in *Empty, opts ...grpc.Cal
 }
 
 func (c *controllerClient) Command(ctx context.Context, in *Frame, opts ...grpc.CallOption) (Controller_CommandClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Controller_ServiceDesc.Streams[0], "/laniakea_sdk.Controller/Command", opts...)
+	stream, err := c.cc.NewStream(ctx, &Controller_ServiceDesc.Streams[0], "/proto.Controller/Command", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func (x *controllerCommandClient) Recv() (*Frame, error) {
 
 func (c *controllerClient) PushVersion(ctx context.Context, in *VersionNumber, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/laniakea_sdk.Controller/PushVersion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Controller/PushVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +342,7 @@ func (c *controllerClient) PushVersion(ctx context.Context, in *VersionNumber, o
 
 func (c *controllerClient) GetVersion(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*VersionNumber, error) {
 	out := new(VersionNumber)
-	err := c.cc.Invoke(ctx, "/laniakea_sdk.Controller/GetVersion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Controller/GetVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +399,7 @@ func _Controller_Stop_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/laniakea_sdk.Controller/Stop",
+		FullMethod: "/proto.Controller/Stop",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ControllerServer).Stop(ctx, req.(*Empty))
@@ -438,7 +438,7 @@ func _Controller_PushVersion_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/laniakea_sdk.Controller/PushVersion",
+		FullMethod: "/proto.Controller/PushVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ControllerServer).PushVersion(ctx, req.(*VersionNumber))
@@ -456,7 +456,7 @@ func _Controller_GetVersion_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/laniakea_sdk.Controller/GetVersion",
+		FullMethod: "/proto.Controller/GetVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ControllerServer).GetVersion(ctx, req.(*Empty))
@@ -468,7 +468,7 @@ func _Controller_GetVersion_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Controller_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "laniakea_sdk.Controller",
+	ServiceName: "proto.Controller",
 	HandlerType: (*ControllerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
