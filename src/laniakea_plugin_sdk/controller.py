@@ -12,6 +12,7 @@ import grpc
 from grpc_health.v1 import health_pb2, health_pb2_grpc
 from grpc_health.v1.health import HealthServicer
 from packaging import version
+import signal
 import sys
 import time
 
@@ -47,6 +48,7 @@ class ControllerBase(plugin_pb2_grpc.ControllerServicer):
         if laniV < plugVConstraint:
             raise ValueError("plugin requires a different version of laniakea")
         self.laniVersion = request.version
+        return plugin_pb2.Empty()
 
 def Serve(servicer):
     health = HealthServicer()
@@ -70,8 +72,8 @@ def Serve(servicer):
     print(f'1|1|tcp|{srv_str}|grpc')
     sys.stdout.flush()
 
-    try:
-        while True:
-            time.sleep(60 * 60 * 24)
-    except KeyboardInterrupt:
+    def signal_handler(sig, frame):
         server.stop(0)
+    signal.signal(signal.SIGTERM, signal_handler)
+    while True:
+        pass
