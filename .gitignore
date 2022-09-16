@@ -23,6 +23,7 @@ build/
 dist/
 *.egg-info/
 laniakea_plugin_sdk.egg-info/
+*.spec
 
 
 #grpc dependencies
