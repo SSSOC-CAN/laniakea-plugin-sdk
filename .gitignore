@@ -21,6 +21,9 @@ __pycache__/
 # Python package info
 build/
 dist/
+*.egg-info/
+laniakea_plugin_sdk.egg-info/
+
 
 #grpc dependencies
 googleapis/
