@@ -18,10 +18,15 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DatasourceClient interface {
+	// StartRecord starts the data recording process for a given plugin.
 	StartRecord(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Datasource_StartRecordClient, error)
+	// StopRecord stops the data recording process but does not shut down the plugin.
 	StopRecord(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	// Stop stops the data recording process if the plugin is recording and prepares it for a graceful shutdown.
 	Stop(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	// PushVersion pushes the version of Laniakea to the plugin.
 	PushVersion(ctx context.Context, in *VersionNumber, opts ...grpc.CallOption) (*Empty, error)
+	// GetVersion retrieves the version number from the plugin.
 	GetVersion(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*VersionNumber, error)
 }
 
@@ -105,10 +110,15 @@ func (c *datasourceClient) GetVersion(ctx context.Context, in *Empty, opts ...gr
 // All implementations must embed UnimplementedDatasourceServer
 // for forward compatibility
 type DatasourceServer interface {
+	// StartRecord starts the data recording process for a given plugin.
 	StartRecord(*Empty, Datasource_StartRecordServer) error
+	// StopRecord stops the data recording process but does not shut down the plugin.
 	StopRecord(context.Context, *Empty) (*Empty, error)
+	// Stop stops the data recording process if the plugin is recording and prepares it for a graceful shutdown.
 	Stop(context.Context, *Empty) (*Empty, error)
+	// PushVersion pushes the version of Laniakea to the plugin.
 	PushVersion(context.Context, *VersionNumber) (*Empty, error)
+	// GetVersion retrieves the version number from the plugin.
 	GetVersion(context.Context, *Empty) (*VersionNumber, error)
 	mustEmbedUnimplementedDatasourceServer()
 }
@@ -276,9 +286,13 @@ var Datasource_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ControllerClient interface {
+	// Stop stops any plugin subprocesses and prepares it for a graceful shutdown.
 	Stop(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	// Command sends a command in byte format to the plugin to initiate a process. It allows a stream of data to be returned.
 	Command(ctx context.Context, in *Frame, opts ...grpc.CallOption) (Controller_CommandClient, error)
+	// PushVersion pushes the version of Laniakea to the plugin.
 	PushVersion(ctx context.Context, in *VersionNumber, opts ...grpc.CallOption) (*Empty, error)
+	// GetVersion retrieves the version number from the plugin.
 	GetVersion(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*VersionNumber, error)
 }
 
@@ -353,9 +367,13 @@ func (c *controllerClient) GetVersion(ctx context.Context, in *Empty, opts ...gr
 // All implementations must embed UnimplementedControllerServer
 // for forward compatibility
 type ControllerServer interface {
+	// Stop stops any plugin subprocesses and prepares it for a graceful shutdown.
 	Stop(context.Context, *Empty) (*Empty, error)
+	// Command sends a command in byte format to the plugin to initiate a process. It allows a stream of data to be returned.
 	Command(*Frame, Controller_CommandServer) error
+	// PushVersion pushes the version of Laniakea to the plugin.
 	PushVersion(context.Context, *VersionNumber) (*Empty, error)
+	// GetVersion retrieves the version number from the plugin.
 	GetVersion(context.Context, *Empty) (*VersionNumber, error)
 	mustEmbedUnimplementedControllerServer()
 }
