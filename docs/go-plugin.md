@@ -136,7 +136,6 @@ func main() {
 For more information about the underlying pluging package we use `hashicorp/go-plugin` please visit their [repository](https://github.com/hashicorp/go-plugin).
 
 The final step is to build an executable and place it in the `PluginDir` defined in the `Laniakea` config file.
-
 ```
 $ go build -o test_plugin main.go
 $ mv test_plugin ~/.laniakea          # or wherever your PluginDir is
@@ -166,5 +165,258 @@ $ laniakea
 4:41PM [INFO]    REST proxy started and listening at 0.0.0.0:8080 subsystem=RPCS
 4:41PM [INFO]    Waiting for password. Use `lanicli setpassword` to set a password for the first time, `lanicli login` to unlock the daemon with an existing password, or `lanicli changepassword` to change the existing password and unlock the daemon.
 ```
+Then from `lanicli`
+```
+$ lanicli login
+$ lanicli plugin-startrecord test-plugin
+{
+}
+```
 ## Step 3: Controller Plugin Implementation
 
+### Versioning and Controller Interface Implementation
+
+Like the `Datasource` plugin, we must satisfy the `Controller` interface.
+
+```go
+type Controller interface{
+    Command(*proto.Frame) (chan *proto.Frame, error)
+    Stop() error
+    PushVersion(versionNumber string) error
+    GetVersion() (string, error)
+}
+```
+
+And like the `Datasource`, the SDK already provides a partially satisfied interface in the form of `ControllerBase` struct with the `PushVersion` and `GetVersion` functions implemented. All that we must do, is specify our Laniakea version constraint, our plugin version and implement `Command()` and `Stop()`.
+
+```go
+package main
+
+import (
+    "encoding/json"
+    "errors"
+    "fmt"
+    "math/rand"
+	"strconv"
+    "sync"
+    "sync/atomic"
+    "time"
+
+    sdk "github.com/SSSOC-CAN/laniakea-plugin-sdk"
+	"github.com/SSSOC-CAN/laniakea-plugin-sdk/proto"
+)
+
+var (
+	pluginVersion         = "1.0.0"
+	laniVersionConstraint = ">= 0.2.0"
+)
+
+type ControllerExample struct {
+	sdk.ControllerBase
+	quitChan     chan struct{}
+	tempSetPoint float64
+	avgTemp      float64
+	recording    int32 // used atomically
+	sync.WaitGroup
+	sync.RWMutex
+}
+
+// We define DemoPayload and DemoFrame structs to define the format of our outbound data
+type DemoPayload struct {
+	Name  string  `json:"name"`
+	Value float64 `json:"value"`
+}
+
+type DemoFrame struct {
+	Data []DemoPayload `json:"data"`
+}
+
+// We define this struct because we want the req that's passed from Laniakea to the plugin to have a JSON format
+type CtrlCommand struct {
+	Command string            `json:"command"`
+	Args    map[string]string `json:"args"`
+}
+
+func (e *ControllerExample) Command(req *proto.Frame) (chan *proto.Frame, error) {
+	if req == nil {
+		return nil, errors.New("request arg is nil")
+	}
+	frameChan := make(chan *proto.Frame)
+	switch req.Type {
+	case "application/json":
+		var cmd CtrlCommand
+		err := json.Unmarshal(req.Payload, &cmd)
+		if err != nil {
+			return nil, err
+		}
+		switch cmd.Command {
+		case "set-temperature":
+			if atomic.LoadInt32(&e.recording) == 1 {
+				if setPtStr, ok := cmd.Args["temp_set_point"]; ok {
+					if v, err := strconv.ParseFloat(setPtStr, 64); err == nil {
+						e.Add(1)
+						go func() {
+							defer e.Done()
+							defer close(frameChan)
+							time.Sleep(1 * time.Second)
+							e.RLock()
+							frameChan <- &proto.Frame{
+								Source:    "test-ctrl-plugin",
+								Type:      "application/json",
+								Timestamp: time.Now().UnixMilli(),
+								Payload:   []byte(fmt.Sprintf(`{ "average_temperature": %f, "current_set_point": %f}`, e.avgTemp, e.tempSetPoint)),
+							}
+							e.RUnlock()
+							e.Lock()
+							e.tempSetPoint = v
+							e.Unlock()
+							e.RLock()
+							frameChan <- &proto.Frame{
+								Source:    "test-ctrl-plugin",
+								Type:      "application/json",
+								Timestamp: time.Now().UnixMilli(),
+								Payload:   []byte(fmt.Sprintf(`{ "average_temperature": %f, "current_set_point": %f}`, e.avgTemp, e.tempSetPoint)),
+							}
+							e.RUnlock()
+						}()
+						return frameChan, nil
+					}
+					return nil, errors.New("not recording")
+				}
+			}
+			return nil, errors.New("invalid temperature set point type")
+		case "start-record":
+			if ok := atomic.CompareAndSwapInt32(&e.recording, 0, 1); !ok {
+				return nil, errors.New("already recording")
+			}
+			e.Add(1)
+			go func() {
+				defer e.Done()
+				defer close(frameChan)
+				for {
+					select {
+					case <-e.quitChan:
+						return
+					default:
+						data := []DemoPayload{}
+						df := DemoFrame{}
+						var cumTemp float64
+						for i := 0; i < 96; i++ {
+							e.RLock()
+							v := (rand.Float64()*1 + e.tempSetPoint)
+							e.RUnlock()
+							n := fmt.Sprintf("Temperature: %v", i+1)
+							data = append(data, DemoPayload{Name: n, Value: v})
+							cumTemp += v
+						}
+						e.Lock()
+						e.avgTemp = cumTemp / float64(len(data))
+						e.Unlock()
+						df.Data = data[:]
+						// transform to json string
+						b, err := json.Marshal(&df)
+						if err != nil {
+							log.Println(err)
+							return
+						}
+						frameChan <- &proto.Frame{
+							Source:    "test-ctrl-plugin",
+							Type:      "application/json",
+							Timestamp: time.Now().UnixMilli(),
+							Payload:   b,
+						}
+						time.Sleep(1 * time.Second)
+					}
+				}
+			}()
+			return frameChan, nil
+        case "stop-record":
+            if ok := atomic.CompareAndSwapInt32(&e.recording, 1, 0); !ok {
+				return nil, errors.New("already stopped recording")
+			}
+            e.Add(1)
+            go func() {
+                defer e.Done()
+                defer close(frameChan)
+                e.quitChan <- struct{}{}
+            }()
+            return frameChan, nil
+		default:
+			return nil, errors.New("invalid command")
+		}
+	default:
+		return nil, errors.New("invalid frame type")
+	}
+}
+
+func (e *ControllerExample) Stop() error {
+	if ok := atomic.CompareAndSwapInt32(&e.recording, 1, 0); !ok {
+		return errors.New("already stopped recording")
+	}
+	close(e.quitChan)
+	e.Wait()
+	return nil
+}
+```
+
+### Final steps
+
+Now that we've satisfied the `Controller` inteface, we need to write our `main()` function.
+```go
+import (
+    ...
+    "github.com/hashicorp/go-plugin"
+)
+
+func main() {
+    impl := &ControllerExample{quitChan: make(chan struct{}), tempSetPoint: 25.0}
+    impl.SetPluginVersion(pluginVersion) // set the plugin version before GetVersion is called
+    impl.SetVersionConstraints(laniVersionConstraint) // set laniakea version constraint before PushVersion is called
+    plugin.Serve(&plugin.ServeConfig{
+        HandshakeConfig: sdk.HandshakeConfig,
+        Plugins: map[string]plugin.Plugin{
+            "test-ctrl-plugin": &sdk.ControllerPlugin{Impl: impl}, 
+        },
+        GRPCServer: plugin.DefaultGRPCServer,
+    })
+}
+```
+The final step is to build an executable and place it in the `PluginDir` defined in the `Laniakea` config file.
+
+```
+$ go build -o test_ctrl_plugin main.go
+$ mv test_ctrl_plugin ~/.laniakea          # or wherever your PluginDir is
+$ laniakea
+4:41PM [INFO]    Starting Daemon...
+4:41PM [INFO]    Daemon succesfully started. Version: 0.2.0
+4:41PM [INFO]    Loading TLS configuration...
+4:41PM [INFO]    TLS configuration successfully loaded.
+4:41PM [INFO]    RPC Server Initialized.
+4:41PM [INFO]    Initializing plugins...
+4:41PM [DEBUG]   starting plugin: path=/home/vagrant/.laniakea/test_ctrl_plugin args=[/home/vagrant/.laniakea/test_ctrl_plugin]  plugin=test-ctrl-plugin subsystem=PLGN
+4:41PM [DEBUG]   plugin started: path=/home/vagrant/.laniakea/test_ctrl_plugin pid=7568  plugin=test-ctrl-plugin subsystem=PLGN
+4:41PM [DEBUG]   waiting for RPC address: path=/home/vagrant/.laniakea/test_ctrl_plugin  plugin=test-ctrl-plugin subsystem=PLGN
+4:41PM [DEBUG]   using plugin: version=1  plugin=test-ctrl-plugin subsystem=PLGN
+4:41PM [DEBUG]   plugin address: address=127.0.0.1:10000 network=tcp timestamp=2022-09-21T16:41:41.964-0400  plugin=test-ctrl-plugin subsystem=PLGN
+4:41PM [TRACE]   waiting for stdio data plugin=test-ctrl-plugin subsystem=PLGN
+4:41PM [INFO]    registered plugin test-ctrl-plugin version: 1.0.0 subsystem=PLGN
+4:41PM [INFO]    Plugins initialized
+4:41PM [INFO]    RPC subservices instantiated and registered successfully.
+4:41PM [INFO]    Opening database...
+4:41PM [INFO]    Database successfully opened.
+4:41PM [INFO]    Initializing unlocker service...
+4:41PM [INFO]    Unlocker service initialized.
+4:41PM [INFO]    Starting RPC server... subsystem=RPCS
+4:41PM [INFO]    RPC server started subsystem=RPCS
+4:41PM [INFO]    gRPC listening on [::]:7777 subsystem=RPCS
+4:41PM [INFO]    REST proxy started and listening at 0.0.0.0:8080 subsystem=RPCS
+4:41PM [INFO]    Waiting for password. Use `lanicli setpassword` to set a password for the first time, `lanicli login` to unlock the daemon with an existing password, or `lanicli changepassword` to change the existing password and unlock the daemon.
+```
+Then from `lanicli`
+```
+$ lanicli login
+$ lanicli plugin-command test-plugin --command='{ "command": "start-record" }' --frametype="application/json"
+{
+    
+}
+```
